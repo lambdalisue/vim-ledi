@@ -1,22 +1,37 @@
-from .docstring import parse_docstring
+import vim
 from .util import (
-    flatten,
     truncate,
     get_script,
+    parse_docstring,
+    handle_exceptions,
 )
 
 
+@handle_exceptions([])
 def gather_candidates():
     script = get_script()
     signatures = script.call_signatures()
-    candidates = [parse_signature(s) for s in signatures]
+    description_max_length = int(
+        vim.eval('g:ledi#signature#description_max_length')
+    )
+    candidates = [
+        parse_signature(s, description_max_length)
+        for s in signatures
+    ]
     return candidates
 
 
-def parse_signature(signature):
-    params = [p.description.replace("\n", ' ') for p in signature.params]
-
+def parse_signature(signature, description_max_length):
+    params = [p.description.replace("\n", ' ')
+              for p in signature.params]
     definitions, summaries = parse_docstring(signature.docstring() or [])
+
+    def join_params():
+        return ', '.join(filter(lambda x: x, [
+            params_ltext,
+            params_ctext,
+            params_rtext,
+        ]))
 
     if signature.index is not None:
         index = signature.index
@@ -31,14 +46,15 @@ def parse_signature(signature):
         params_ltext = ''
         params_ctext = ''
         params_rtext = ', '.join(params)
-    params_text = ', '.join(map(lambda x: x, [
+    params_text = ', '.join(filter(lambda x: x, [
         params_ltext,
         params_ctext,
         params_rtext,
     ]))
     params = dict(
+        index=-1 if signature.index is None else signature.index,
         call_name=signature.call_name,
-        description=truncate(' '.join(summaries), 100),
+        description=truncate(' '.join(summaries), description_max_length),
         params=params,
         params_text=params_text,
         params_ltext=params_ltext,

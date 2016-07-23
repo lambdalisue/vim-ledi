@@ -1,10 +1,12 @@
 import sys
+import itertools
+import functools
 import vim
 import jedi
 
 
-PY_VERSION = sys.version_info[0]
-VIM_ENCODING = vim.eval('&encoding') or 'latin1'
+if sys.version_info.major >= 3:
+    unicode = None
 
 
 def to_vim(obj):
@@ -14,6 +16,8 @@ def to_vim(obj):
         return obj
     elif isinstance(obj, bool):
         return int(obj)
+    elif unicode and isinstance(obj, unicode):
+        return to_vim(obj.encoding(vim.eval('&encoding') or 'latin1'))
     elif isinstance(obj, str):
         s = obj.replace('\\', '\\\\')
         s = s.replace('"', '\"')
@@ -54,5 +58,31 @@ def get_script(source=None, row=None, col=None):
     return jedi.Script(
         source, row, col,
         path=vim.current.buffer.name,
-        encoding=VIM_ENCODING,
+        encoding=vim.eval('&encoding') or 'latin1',
     )
+
+
+def parse_docstring(docstring):
+    lines = map(lambda x: x.strip(), docstring.split("\n"))
+    definitions = list(itertools.dropwhile(lambda x: x, lines))
+    summaries = itertools.dropwhile(lambda x: not x, definitions)
+    summaries = itertools.takewhile(lambda x: x, summaries)
+    summaries = list(summaries)
+    summaries = summaries if summaries else list(lines)
+    return definitions, summaries
+
+
+def handle_exceptions(default):
+    def wrapper(fn):
+        @functools.wraps(fn)
+        def inner(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except Exception as e:
+                if int(vim.eval('&verbose')) > 0:
+                    vim.command('echohl ErrorMsg')
+                    print(e)
+                    vim.command('echohl None')
+                return default
+        return inner
+    return wrapper

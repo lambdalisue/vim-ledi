@@ -1,7 +1,3 @@
-function! ledi#throw(msg) abort
-  throw 'ledi: ' . a:msg
-endfunction
-
 function! ledi#define_variables(prefix, defaults) abort
   let prefix = empty(a:prefix) ? 'g:ledi' : 'g:ledi#' . a:prefix
   for [key, value] in items(a:defaults)
@@ -12,4 +8,18 @@ function! ledi#define_variables(prefix, defaults) abort
     unlet value
   endfor
 endfunction
+
+function! ledi#complete() abort
+  if pumvisible()
+    return "\<C-n>"
+  else
+    return "\<C-x>\<C-o>\<C-p>\<CR>"
+  endif
+endfunction
+
+call ledi#define_variables('', {
+      \ 'enable_default_mappings': 1,
+      \ 'enable_default_omnifunc': 1,
+      \ 'enable_signature_indicator': 0,
+      \})
 

@@ -1,14 +1,15 @@
 import vim
-from . import signature
-from .docstring import parse_docstring
 from .util import (
     flatten,
     truncate,
     get_script,
+    parse_docstring,
+    handle_exceptions,
 )
 
 
-def gather_candidates(base, include_signature=False):
+@handle_exceptions([])
+def gather_candidates(base=''):
     row, col = vim.current.window.cursor
     source = []
     for i, line in enumerate(vim.current.buffer):
@@ -26,34 +27,28 @@ def gather_candidates(base, include_signature=False):
     menu_max_length = int(vim.eval('g:ledi#completion#menu_max_length'))
     type_indicators = vim.eval('g:ledi#completion#type_indicators')
     candidates = [
-        parse_completion(base, c, menu_max_length, type_indicators)
+        parse_completion(c, menu_max_length, type_indicators)
         for c in completions
     ]
-    if include_signature:
-        signatures = [signature.parse_signature(s)
-                      for s in script.call_signatures()]
-    else:
-        signatures = []
-    return (candidates, signatures)
+    return candidates
 
 
-def parse_completion(base, c, menu_max_length, type_indicators):
-    """Parse jedi.api.classes.Completion instance to a completion candidate"""
-    head = c.description.split(':')[0]
-    indicator = type_indicators.get(head, type_indicators.get('other', ''))
+def parse_completion(completion, menu_max_length, type_indicators):
+    type_ = completion.description.split(':')[0]
+    indicator = type_indicators.get(type_, '')
 
-    docstring = c.docstring() or None
+    docstring = completion.docstring() or None
     if docstring:
         definitions, summaries = parse_docstring(docstring)
         menu = ' '.join(summaries)
         info = docstring
     else:
-        menu = flatten(c.description.replace('%s:' % head, ''))
-        info = c.description
+        menu = flatten(completion.description.replace('%s:' % type_, ''))
+        info = completion.description
 
     params = dict(
-        word=c.name[:len(base)] + c.complete,
-        abbr=c.name,
+        word=completion.complete,
+        abbr=completion.name,
         menu='%s%s' % (indicator, truncate(menu, menu_max_length)),
         info=info,
         icase=1,
