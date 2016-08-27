@@ -1,4 +1,7 @@
 function! ledi#completion#gather_candidates(base) abort
+  if ledi#python#status() !=# 'ready'
+    return []
+  endif
   return ledi#python#exec(
         \ 'ledi.completion.gather_candidates("%s")',
         \ a:base,

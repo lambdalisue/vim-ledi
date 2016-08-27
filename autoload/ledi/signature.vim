@@ -1,4 +1,7 @@
 function! ledi#signature#gather_candidates() abort
+  if ledi#python#status() !=# 'ready'
+    return []
+  endif
   return ledi#python#exec(
         \ 'ledi.signature.gather_candidates()',
         \)
