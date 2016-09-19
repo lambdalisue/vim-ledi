@@ -14,6 +14,8 @@ function! ledi#python#init(...) abort
           \ 'try:',
           \ '  import jedi',
           \ '  import ledi',
+          \ '  import ledi.completion',
+          \ '  import ledi.signature',
           \ '  ledi_response = ""',
           \ 'except Exception as e:',
           \ '  ledi_response = str(e)',
