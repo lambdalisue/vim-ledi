@@ -19,8 +19,8 @@ function! ledi#python#init(...) abort
           \ '  ledi_response = str(e)',
           \]
     execute s:Python.exec_code(code, major_version)
-    let response = s:Python.eval_expr('ledi_response')
-    execute s:Python.exec_code('del ledi_response')
+    let response = s:Python.eval_expr('ledi_response', major_version)
+    execute s:Python.exec_code('del ledi_response', major_version)
     if empty(response)
       let s:status[major_version] = 'ready'
       call s:Python.set_major_version(major_version)
