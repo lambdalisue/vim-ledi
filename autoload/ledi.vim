@@ -18,6 +18,7 @@ function! ledi#complete() abort
 endfunction
 
 call ledi#define_variables('', {
+      \ 'force_py_version': has('python3') ? 3 : has('python') ? 2 : 0,
       \ 'enable_default_mappings': 1,
       \ 'enable_default_omnifunc': 1,
       \ 'enable_signature_indicator': 0,

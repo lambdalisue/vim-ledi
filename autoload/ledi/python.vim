@@ -55,4 +55,4 @@ function! ledi#python#status() abort
 endfunction
 
 
-call ledi#python#init()
+call ledi#python#init(g:ledi#force_py_version)
