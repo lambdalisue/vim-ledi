@@ -15,7 +15,7 @@ function! ledi#python#init(...) abort
           \ '  import jedi',
           \ '  import ledi',
           \ '  ledi_response = ""',
-          \ 'except ImportError as e:',
+          \ 'except Exception as e:',
           \ '  ledi_response = str(e)',
           \]
     execute s:Python.exec_code(code, major_version)
